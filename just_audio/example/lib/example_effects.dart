@@ -47,12 +47,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Future<void> _init() async {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.speech());
-    try {
-      await _player.setAudioSource(AudioSource.uri(Uri.parse(
-          "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3")));
-    } catch (e) {
-      print("Error loading audio source: $e");
-    }
   }
 
   @override
@@ -290,7 +284,14 @@ class ControlButtons extends StatelessWidget {
               return IconButton(
                 icon: const Icon(Icons.play_arrow),
                 iconSize: 64.0,
-                onPressed: player.play,
+                onPressed: () async {
+                  for (int i = 0; i < 5; i++) {
+                    await player.setAudioSource(AudioSource.uri(Uri.parse("asset:audio/nature.mp3")), initialPosition: Duration(seconds: 2));
+                    await player.setVolume(0.01);
+                    await player.play();
+                    await player.stop();
+                  }
+                },
               );
             } else if (processingState != ProcessingState.completed) {
               return IconButton(
