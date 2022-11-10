@@ -66,13 +66,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
   }
 
-  Stream<PositionData> get _positionDataStream =>
-      Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
-          _player.positionStream,
-          _player.bufferedPositionStream,
-          _player.durationStream,
-          (position, bufferedPosition, duration) => PositionData(
-              position, bufferedPosition, duration ?? Duration.zero));
+  Stream<PositionData> get _positionDataStream => Rx.combineLatest3<Duration, Duration, Duration?, PositionData>(
+      _player.positionStream,
+      _player.bufferedPositionStream,
+      _player.durationStream,
+      (position, bufferedPosition, duration) => PositionData(position, bufferedPosition, duration ?? Duration.zero));
 
   @override
   Widget build(BuildContext context) {
@@ -118,8 +116,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   return SeekBar(
                     duration: positionData?.duration ?? Duration.zero,
                     position: positionData?.position ?? Duration.zero,
-                    bufferedPosition:
-                        positionData?.bufferedPosition ?? Duration.zero,
+                    bufferedPosition: positionData?.bufferedPosition ?? Duration.zero,
                     onChangeEnd: _player.seek,
                   );
                 },
@@ -272,8 +269,7 @@ class ControlButtons extends StatelessWidget {
             final playerState = snapshot.data;
             final processingState = playerState?.processingState;
             final playing = playerState?.playing;
-            if (processingState == ProcessingState.loading ||
-                processingState == ProcessingState.buffering) {
+            if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
               return Container(
                 margin: const EdgeInsets.all(8.0),
                 width: 64.0,
@@ -286,12 +282,19 @@ class ControlButtons extends StatelessWidget {
                 iconSize: 64.0,
                 onPressed: () async {
                   for (int i = 0; i < 5; i++) {
+                    await player.setAudioSource(AudioSource.uri(Uri.parse("asset:audio/silence.mp3")));
+                    await player.setVolume(1);
+                    await player.play();
+                    await player.pause();
                     await player.setAudioSource(AudioSource.uri(Uri.parse("asset:audio/nature.mp3")), initialPosition: Duration(seconds: 2));
-                    await player.setVolume(0.01);
+                    await player.setVolume(1);
                     await player.play();
                     await player.stop();
                   }
                 },
+
+//              I'm writing application where users are listen to first seconds of an audio file, files are played randomly and randomly modified with equalizer. User needs to make fast simple yes or no answer.//
+//              I found that bug for fast answering users.
               );
             } else if (processingState != ProcessingState.completed) {
               return IconButton(
@@ -311,8 +314,7 @@ class ControlButtons extends StatelessWidget {
         StreamBuilder<double>(
           stream: player.speedStream,
           builder: (context, snapshot) => IconButton(
-            icon: Text("${snapshot.data?.toStringAsFixed(1)}x",
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            icon: Text("${snapshot.data?.toStringAsFixed(1)}x", style: const TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () {
               showSliderDialog(
                 context: context,
